@@ -32,7 +32,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "stdio.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -76,10 +76,6 @@ void Error_Handler(void);
 #define JTDO_GPIO_Port GPIOB
 #define LD1_Pin GPIO_PIN_5
 #define LD1_GPIO_Port GPIOB
-#define STLINK_RX_Pin GPIO_PIN_6
-#define STLINK_RX_GPIO_Port GPIOB
-#define STLINK_TX_Pin GPIO_PIN_7
-#define STLINK_TX_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

@@ -43,7 +43,6 @@
 
 /* Private variables ---------------------------------------------------------*/
 UART_HandleTypeDef huart1;
-DMA_HandleTypeDef hdma_usart1_tx;
 
 /* USER CODE BEGIN PV */
 
@@ -52,10 +51,16 @@ DMA_HandleTypeDef hdma_usart1_tx;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_DMA_Init(void);
 static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN PFP */
-
+#ifdef __GNUC__
+/* With GCC, small printf (option LD Linker->Libraries->Small printf
+   set to 'Yes') calls __io_putchar() */
+#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
+#else
+#define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
+#endif /* __GNUC__ */
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef * huart);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -92,10 +97,10 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_DMA_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
 
+  setbuf(stdout, NULL);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -103,7 +108,8 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-
+    printf("\n\r Truth. Love. Plenty. Peace \n\r");
+    HAL_Delay(500);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -182,7 +188,7 @@ static void MX_USART1_UART_Init(void)
 
   /* USER CODE END USART1_Init 1 */
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 9600;
+  huart1.Init.BaudRate = 115200;
   huart1.Init.WordLength = UART_WORDLENGTH_7B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
@@ -211,23 +217,6 @@ static void MX_USART1_UART_Init(void)
   /* USER CODE BEGIN USART1_Init 2 */
 
   /* USER CODE END USART1_Init 2 */
-
-}
-
-/** 
-  * Enable DMA controller clock
-  */
-static void MX_DMA_Init(void) 
-{
-
-  /* DMA controller clock enable */
-  __HAL_RCC_DMAMUX1_CLK_ENABLE();
-  __HAL_RCC_DMA1_CLK_ENABLE();
-
-  /* DMA interrupt init */
-  /* DMA1_Channel1_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
 
 }
 
@@ -279,7 +268,36 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+/**
+  * @brief  Retargets the C library printf function to the USART.
+  * @param  None
+  * @retval None
+  */
+PUTCHAR_PROTOTYPE 
+{
+  /* Place your implementation of fputc here */
+  /* e.g. write a character to the USART1 and Loop until the end of transmission */
+  if (HAL_UART_Transmit_IT(&huart1, (uint8_t *)&ch, 1) != HAL_OK)
+  {
+    Error_Handler();
+  }
 
+  while (HAL_UART_GetState(&huart1) != HAL_UART_STATE_READY)
+  {
+  }
+
+  return ch;
+}
+
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef * huart)
+{
+    HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin);
+}
+
+void HAL_UART_ErrorCallback(UART_HandleTypeDef * huart)
+{
+    HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+}
 /* USER CODE END 4 */
 
 /**
@@ -291,6 +309,7 @@ void Error_Handler(void)
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
 
+  HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
   /* USER CODE END Error_Handler_Debug */
 }
 
