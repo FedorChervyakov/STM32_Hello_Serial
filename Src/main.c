@@ -292,11 +292,12 @@ PUTCHAR_PROTOTYPE
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef * huart)
 {
     HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin);
+    HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 }
 
 void HAL_UART_ErrorCallback(UART_HandleTypeDef * huart)
 {
-    HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+    HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
 }
 /* USER CODE END 4 */
 
